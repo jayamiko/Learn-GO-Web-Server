@@ -2,32 +2,21 @@ package main
 
 import (
 	"fmt"
-	"net/http"
-	"text/template"
+	"net/url"
 )
-
-func index(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, "How are You?")
-}
 
 
 func main() {
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request){
-		var data = map[string]string{
-			"Name": "Jaya Miko",
-			"Message": "Have a Nice Day!",
-		}
-
-		var t, err = template.ParseFiles("template.html")
-		if err != nil {
-			fmt.Println(err.Error())
-			return
-		}
-
-		t.Execute(w, data)
-	})
-	// http.HandleFunc("/index", index)
-
-	fmt.Println("Starting web Server at http://localhost:8080/")
-	http.ListenAndServe(":8080", nil)
+	var urlString = "https://jsonplaceholder.typicode.com/users?name=Jaya%20Miko"
+	var u, e = url.Parse(urlString)
+    if e != nil {
+        fmt.Println(e.Error())
+return
+    }
+    fmt.Printf("url: %s\n", urlString)
+    fmt.Printf("protocol: %s\n", u.Scheme) // https
+    fmt.Printf("host: %s\n", u.Host)       // jsonplaceholder.typicode.com
+    fmt.Printf("path: %s\n", u.Path)       // /users
+    var name = u.Query()["name"][0] // name: Leanne Graham
+    fmt.Printf("name: %s", name) 
 }
