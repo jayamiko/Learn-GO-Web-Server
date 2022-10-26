@@ -3,76 +3,77 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 )
 
-type User struct {
-	FullName string `json:"Name"`
-	Age      int
-	Title    string
+// Web Service API adalah sebuah web yang menerima request dari client dan menghasilkan response, biasa berupa JSON/XML.
+
+type student struct {
+	ID    string
+	Name  string
+	Age   int
+	Title string
+}
+
+// Json Data
+var data = []student{
+	student{"1", "Jaya Miko", 24, "Programmer"},
+	student{"2", "Leanne Graham", 24, "Designer"},
+	student{"3", "John Wick", 24, "Supervisor"},
+	student{"4", "Ethan Bond", 24, "HRD"},
 }
 
 func main() {
-	stringJsonToObject()
-	arrayJsonToArrayObject()
-	objectToStringJson()
+	http.HandleFunc("/users", users)
+	http.HandleFunc("/user", user)
+
+	fmt.Println("Starting web server at http://localhost:8080/")
+	http.ListenAndServe(":8080", nil)
 }
 
-func stringJsonToObject() {
-	// String JSON to Object
+// Mengembalikan semua data yang ada di array
+func users(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 
-	jsonString := `{"Name": "Jaya Miko", "Age": 24, "Title": "Programmer"}`
-	jsonData := []byte(jsonString)
+	if r.Method == "GET" {
+		var result, err = json.Marshal(data)
 
-	var data User
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 
-	// json.Unmarshal = json string dikonversi menjadi bentuk objek
-	err := json.Unmarshal(jsonData, &data)
-
-	if err != nil {
-		fmt.Println(err.Error())
+		w.Write(result)
 		return
 	}
 
-	fmt.Println("Full Name: ", data.FullName)
-	fmt.Println("Age: ", data.Age)
-	fmt.Println("Title: ", data.Title)
+	http.Error(w, "", http.StatusBadRequest)
 }
 
-func arrayJsonToArrayObject() {
-	// Array JSON to Array Object
+// Mengembalikan satu data, diambil dari data berdasarkan ID-nya
+func user(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 
-	var jsonStringArray = `[
-		{"Name": "Jaya Miko", "Age": 24, "Title": "Programmer"},
-		{"Name": "Leanne Graham", "Age": 32}
-	]`
+	if r.Method == "GET" {
+		id := r.FormValue("id")
+		var result []byte
+		var err error
 
-	var dataArray []User
+		for _, each := range data {
+			if each.ID == id {
+				result, err = json.Marshal(each)
 
-	e := json.Unmarshal([]byte(jsonStringArray), &dataArray)
+				if err != nil {
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
 
-	if e != nil {
-		fmt.Println(e.Error())
+				w.Write(result)
+				return
+			}
+		}
+		http.Error(w, "User Not Found", http.StatusNotFound)
 		return
 	}
-
-	fmt.Println("FullName: ", dataArray[0].FullName) // Jaya Miko
-	fmt.Println("Age: ", dataArray[0].Age)           // 24
-	fmt.Println("Title: ", dataArray[0].Title)       // Programmer
-}
-
-func objectToStringJson() {
-	// Object to JSON String
-
-	object := []User{{"Jaya Miko", 24, "Programmer"}, {"Leanne Graham", 27, "Designer"}}
-
-	// json.Marshal = encoding daa ke json string
-	jsonDataObject, err := json.Marshal(object)
-
-	if err != nil {
-		fmt.Println(err.Error())
-		return
-	}
-
-	jsonStringObject := string(jsonDataObject)
-	fmt.Println(jsonStringObject)
+	http.Error(w, "", http.StatusBadRequest)
 }
