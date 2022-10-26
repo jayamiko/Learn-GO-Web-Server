@@ -18,6 +18,14 @@ type Users struct {
 }
 
 func main() {
+	data := fetchUsers()
+
+	for i := 0; i < len(data); i++ {
+		fmt.Println(i, data[i].Email)
+	}
+}
+
+func fetchUsers() []Users {
 	response, err := http.Get("https://jsonplaceholder.typicode.com/users")
 	if err != nil {
 		fmt.Print(err.Error())
@@ -34,7 +42,5 @@ func main() {
 
 	fmt.Println(responseObject)
 
-	for i := 0; i < len(responseObject); i++ {
-		fmt.Println(i, responseObject[i].Email)
-	}
+	return responseObject
 }
